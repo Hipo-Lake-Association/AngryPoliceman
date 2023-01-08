@@ -1,72 +1,120 @@
+options:
+  # ---------- ELEMENT OPTIONS ----------
+  # min/max width of a line
+  text.min.width: 1
+  text.max.width: 7
+
+  # min/max size of a font
+  text.min.size: 25
+  text.max.size: 50
+
+  # the length of the text written on the captcha
+  captcha.length: 5
+
+  # ---------- CAPTCHA OPTIONS ----------
+  # how many random lines should be drawn above/below the text?
+  lines.above.text: 1
+  lines.below.text: 3
+
+
 on load:
   load map classes
-
+  
 import:
   com.btk5h.skriptmirror.util.lookup.DelegateMapRenderer
   com.btk5h.skriptmirror.util.lookup.DelegatingMapRenderer
   javax.imageio.ImageIO
   java.io.File
-  java.awt.Canvas
   java.awt.Color
   java.awt.image.BufferedImage
-  java.awt.Graphics2D
-  java.awt.RenderingHints
-  java.awt.RenderingHints$Key
-  java.awt.Component
   org.bukkit.Bukkit
-  org.bukkit.event.server.MapInitializeEvent
   org.bukkit.inventory.ItemStack
-  org.bukkit.Material
+  net.logicsquad.nanocaptcha.image.ImageCaptcha
+  net.logicsquad.nanocaptcha.image.backgrounds.GradiatedBackgroundProducer
+  net.logicsquad.nanocaptcha.image.backgrounds.FlatColorBackgroundProducer
+  net.logicsquad.nanocaptcha.image.backgrounds.SquigglesBackgroundProducer
+  net.logicsquad.nanocaptcha.image.noise.StraightLineNoiseProducer
+  net.logicsquad.nanocaptcha.image.renderer.DefaultWordRenderer
+  net.logicsquad.nanocaptcha.content.LatinContentProducer
+  net.logicsquad.nanocaptcha.image.noise.CurvedLineNoiseProducer
+  java.awt.Font
+  java.util.Arrays
 
-function getCaptchaImage(string: string) :: object:
-  set {_image} to new BufferedImage(128, 128, BufferedImage.TYPE_INT_RGB)
-
-  set {_canvas} to new Canvas()
-  {_canvas}.setSize(128, 128)
-  
-  set {_graphics} to {_image}.getGraphics()
-  {_graphics}.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-  {_canvas}.paint({_graphics})
-
-  {_graphics}.setColor(Color.WHITE)
-  {_graphics}.fillRect(0, 0, 128, 128)
-
-  {_graphics}.setColor(Color.BLACK)
-  {_graphics}.drawString({_string}, 50, 50)
-  
-  #set {_azex} to ImageIO.read(new File("azer.png"))
-  #{_graphics}.drawImage({_azex}, 0, 0, {_})
-  
-  return {_image}
-
-function getCaptchaMap(image: object) :: item:
+function getCaptchaMap(image: object) :: itemtype:
   create new section with {_proxy}, {_map-view}, {_canvas}, {_player} stored in {_handles::render}:
     {_canvas}.drawImage(0, 0, {_image})
   set {_delegate} to proxy instance of DelegateMapRenderer using {_handles::*}
   set {_renderer} to new DelegatingMapRenderer({_delegate})
-  
-  set {_item} to filled map
-  set {_meta} to {_item}.getItemMeta()
-  {_meta}.setMapId(1.shortValue())
-  set {_view} to {_meta}.getMapView()
 
+  set {_item} to (random item of filled map)
+  set {_meta} to {_item}.getItemMeta()
+  {_meta}.setMapId(1.intValue())
+
+  set {_view} to {_meta}.getMapView() #Bukkit.createMap(Bukkit.getWorlds().get(0))
   {_view}.getRenderers().clear()
   {_view}.addRenderer({_renderer})
   {_view}.setTrackingPosition(false)
-  {_meta}.setMapView({_view})
 
+  {_meta}.setMapView({_view})
   {_item}.setItemMeta({_meta})
+
   return {_item}
 
-function getRandomString(length: integer) :: string:
-  set {_chars::*} to "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" split at ""
-  delete {_chars::%size of {_chars::*}%}
-  loop {_length} times:
-    add random element out of {_chars::*} to {_return::*}
-  return join {_return::*} with ""
+function randomColor() :: object:
+  set {_r} to (random element of (100 times)) / 100
+  set {_g} to (random element of (100 times)) / 100
+  set {_b} to (random element of (100 times)) / 100
+  set {_color} to new Color({_r}.floatValue(), {_g}.floatValue(), {_b}.floatValue())
+  return {_color}
+
+function randomBackground() :: object:
+  set {_color1} to randomColor()
+  set {_color2} to randomColor()
+  set {_x} to (random element out of (3 times))
+  if {_x} is 1:
+    return (new GradiatedBackgroundProducer({_color1}, {_color2}))
+  else if {_x} is 2:
+    return (new SquigglesBackgroundProducer())
+  return (new FlatColorBackgroundProducer({_color1}))
+
+function randomFont() :: object:
+  set {_font.names::*} to "Abadi MT Condensed Extra Bold,Abadi MT Condensed Light,Academy Engraved LET,Al Bayan,American Typewriter,Andale Mono,Apple Casual,Apple Chancery,Apple LiGothic,Apple LiSung,Apple Symbols,AppleGothic,AppleMyungjo,Arial,Arial Black,Arial Hebrew,Arial Narrow,Arial Rounded MT Bold,Ayuthaya,Baghdad,Bank Gothic,Baskerville,Baskerville Old Face,Batang,Bauhaus 93,Bell MT,Bernard MT Condensed,BiauKai,Big Caslon,Bitstream Vera Sans,Bitstream Vera Sans Mono,Bitstream Vera Serif,Blackmoor LET,BlairMdITC TT,Bodoni Ornaments ITC TT,Bodoni SvtyTwo ITC TT,Bodoni SvtyTwo OS ITC TT,Bodoni SvtyTwo SC ITC TT,Book Antiqua,Bookman Old Style,Bordeaux Roman Bold LET,Bradley Hand ITC TT,Braggadocio,Britannic Bold,Brush Script MT,Calisto MT,Century,Century Gothic,Century Schoolbook,Chalkboard,Charcoal CY,Cochin,Colonna MT,Comic Sans MS,Cooper Black,Copperplate,Copperplate Gothic Bold,Copperplate Gothic Light,Corsiva Hebrew,Courier,Courier New,Cracked,Curlz MT,DecoType Naskh,Desdemona,Devanagari MT,Dialog,DialogInput,Didot,Edwardian Script ITC,Engravers MT,Euphemia UCAS,Eurostile,Footlight MT Light,Futura,Garamond,GB18030 Bitmap,Geeza Pro,Geneva,Geneva CY,Georgia,Gill Sans,Gill Sans Ultra Bold,Gloucester MT Extra Condensed,Goudy Old Style,Gujarati MT,Gulim,Gurmukhi MT,Haettenschweiler,Handwriting - Dakota,Harrington,Hei,Helvetica,Helvetica CY,Helvetica Neue,Herculanum,Hiragino Kaku Gothic Pro,Hiragino Kaku Gothic Std,Hiragino Maru Gothic Pro,Hiragino Mincho Pro,Hoefler Text,Impact,Imprint MT Shadow,InaiMathi,Jazz LET,Kai,Kino MT,Krungthep,KufiStandardGK,LiHei Pro,LiSong Pro,Lucida Blackletter,Lucida Bright,Lucida Calligraphy,Lucida Fax,Lucida Grande,Lucida Handwriting,Lucida Sans,Lucida Sans Typewriter,Marker Felt,Matura MT Script Capitals,Mistral,Modern No. 20,Mona Lisa Solid ITC TT,Monaco,Monospaced,Monotype Corsiva,Monotype Sorts,MS Gothic,MS Mincho,MS PGothic,MS PMincho,Mshtakan,MT Extra,Nadeem,New Peninim MT,News Gothic MT,Onyx,OpenSymbol,Optima,Osaka,Palatino,Papyrus,Party LET,Perpetua Titling MT,Plantagenet Cherokee,Playbill,PMingLiU,PortagoITC TT,Princetown LET,Raanana,Rockwell,Rockwell Extra Bold,SansSerif,Santa Fe LET,Sathu,Savoye LET,SchoolHouse Cursive B,SchoolHouse Printed A,Serif,Silom,SimSun,Skia,Snell Roundhand,Stencil,STFangsong,STHeiti,STKaiti,Stone Sans ITC TT,Stone Sans Sem ITC TT,STSong,Symbol,Synchro LET,Tahoma,Thonburi,Times,Times New Roman,Trebuchet MS,Type Embellishments One LET,Verdana,Webdings,Wide Latin,Zapf Dingbats,Zapfino" split at ","
+  set {_font.name} to (random element of {_font.names::*})
+  set {_size} to (random integer between {@text.min.size} and {@text.max.size})
+  set {_font} to (new Font({_font.name}, 0, {_size}))
+  set {_color} to randomColor()
+  return (new DefaultWordRenderer(Arrays.asList({_color}), Arrays.asList({_font})))
+
+function randomContent(length: integer) :: object:
+  return (new LatinContentProducer({_length}))  
+
+function randomNoise() :: object:
+  set {_color} to randomColor()
+  set {_width} to (random number between {@text.min.width} and {@text.max.width}).floatValue()
+  return (new CurvedLineNoiseProducer({_color}, {_width}))
+
+function newCaptcha() :: object:
+    set {_background} to randomBackground()
+    set {_captcha} to new ImageCaptcha.Builder(128, 128).addBackground({_background})
+                                                                
+    set {_x} to {@lines.below.text} # trick to make skript not throw warnings when the option is set to 1
+    loop {_x} times:
+      set {_noise} to randomNoise()
+      {_captcha}.addNoise({_noise})
+          
+    {_captcha}.addContent(randomContent({@captcha.length}), randomFont())
+    
+    set {_x} to {@lines.above.text}
+    loop {_x} times:
+      set {_noise} to randomNoise()
+      {_captcha}.addNoise({_noise})
+          
+    set {_captcha} to {_captcha}.build()      
+    #.addFilter().build()
+    return {_captcha}
 
 command img_test:
   trigger:
-    set player's tool to getCaptchaMap(getCaptchaImage(getRandomString(7)))
-    #set {_output} to new File("saved.png")
-    #ImageIO.write({_image}"png", {_output})
+    set {_captcha} to newCaptcha()
+    set {_image} to {_captcha}.getImage()
+    set player's tool to getCaptchaMap({_image})
