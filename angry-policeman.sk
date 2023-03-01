@@ -218,7 +218,15 @@ on pickup:
 on command:
   {-captcha::%player's uuid%} is set
   cancel event
-  
+
+on tool change:
+  {-captcha::%player's uuid%} is set
+  cancel event
+
+on swap item:
+  {-captcha::%player's uuid%} is set
+  cancel event
+
 on chat:
   if {-captcha::%player's uuid%} is set:
     cancel event
