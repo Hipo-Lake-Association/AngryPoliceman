@@ -1,0 +1,250 @@
+options:
+  # ---------- ELEMENT OPTIONS ----------
+  # min/max width of a line below/above the text
+  lines.below.min.width: 1
+  lines.below.max.width: 7
+  
+  lines.above.min.width: 1
+  lines.above.max.width: 3
+
+  # min/max size of a font
+  text.min.size: 30
+  text.max.size: 40
+
+  # the length of the text written on the captcha
+  captcha.length: 5
+
+  # ---------- CAPTCHA OPTIONS ----------
+  # how many random lines should be drawn above/below the text?
+  lines.above.text: 1
+  lines.below.text: 3
+  
+  # how many filters should be applied?
+  filter.fish.eye: 0
+  filter.ripple: 1
+  filter.shear: 0
+  filter.stretch: 1
+
+  # time to solve a captcha
+  captcha.time: 30 seconds
+  
+  # how many captchas can the player get wrong
+  captcha.max.wrong: 2
+
+  # console command to run when the player gets too many wrong
+  captcha.punish: "kick %player% Kicked by AngryPoliceman"
+
+  # console command to run when the time runs out
+  captcha.out.of.time: "kick %{_p}% You didn't solve the captcha"
+
+  # message to send to player when they start solving a captcha
+  captcha.message.solve: "&fPlease solve the &e%{_length}% character &fcaptcha. You have &c%{_time}%&f."
+  captcha.message.complete: "&aYou solved the captcha. Have a great day!"
+  captcha.message.wrong: "&cWrong answer!"
+
+# Config ends here.
+
+on load:
+  load map classes
+  # wow lots of fonts so cool
+  set {font.names::*} to "Abadi MT Condensed Extra Bold,Abadi MT Condensed Light,Academy Engraved LET,Al Bayan,American Typewriter,Andale Mono,Apple Casual,Apple Chancery,Apple LiGothic,Apple LiSung,Apple Symbols,AppleGothic,AppleMyungjo,Arial,Arial Black,Arial Hebrew,Arial Narrow,Arial Rounded MT Bold,Ayuthaya,Baghdad,Bank Gothic,Baskerville,Baskerville Old Face,Batang,Bauhaus 93,Bell MT,Bernard MT Condensed,BiauKai,Big Caslon,Bitstream Vera Sans,Bitstream Vera Sans Mono,Bitstream Vera Serif,Blackmoor LET,BlairMdITC TT,Bodoni Ornaments ITC TT,Bodoni SvtyTwo ITC TT,Bodoni SvtyTwo OS ITC TT,Bodoni SvtyTwo SC ITC TT,Book Antiqua,Bookman Old Style,Bordeaux Roman Bold LET,Bradley Hand ITC TT,Braggadocio,Britannic Bold,Brush Script MT,Calisto MT,Century,Century Gothic,Century Schoolbook,Chalkboard,Charcoal CY,Cochin,Colonna MT,Comic Sans MS,Cooper Black,Copperplate,Copperplate Gothic Bold,Copperplate Gothic Light,Corsiva Hebrew,Courier,Courier New,Cracked,Curlz MT,DecoType Naskh,Desdemona,Devanagari MT,Dialog,DialogInput,Didot,Edwardian Script ITC,Engravers MT,Euphemia UCAS,Eurostile,Footlight MT Light,Futura,Garamond,GB18030 Bitmap,Geeza Pro,Geneva,Geneva CY,Georgia,Gill Sans,Gill Sans Ultra Bold,Gloucester MT Extra Condensed,Goudy Old Style,Gujarati MT,Gulim,Gurmukhi MT,Haettenschweiler,Handwriting - Dakota,Harrington,Hei,Helvetica,Helvetica CY,Helvetica Neue,Herculanum,Hiragino Kaku Gothic Pro,Hiragino Kaku Gothic Std,Hiragino Maru Gothic Pro,Hiragino Mincho Pro,Hoefler Text,Impact,Imprint MT Shadow,InaiMathi,Jazz LET,Kai,Kino MT,Krungthep,KufiStandardGK,LiHei Pro,LiSong Pro,Lucida Blackletter,Lucida Bright,Lucida Calligraphy,Lucida Fax,Lucida Grande,Lucida Handwriting,Lucida Sans,Lucida Sans Typewriter,Marker Felt,Matura MT Script Capitals,Mistral,Modern No. 20,Mona Lisa Solid ITC TT,Monaco,Monospaced,Monotype Corsiva,Monotype Sorts,MS Gothic,MS Mincho,MS PGothic,MS PMincho,Mshtakan,MT Extra,Nadeem,New Peninim MT,News Gothic MT,Onyx,OpenSymbol,Optima,Osaka,Palatino,Papyrus,Party LET,Perpetua Titling MT,Plantagenet Cherokee,Playbill,PMingLiU,PortagoITC TT,Princetown LET,Raanana,Rockwell,Rockwell Extra Bold,SansSerif,Santa Fe LET,Sathu,Savoye LET,SchoolHouse Cursive B,SchoolHouse Printed A,Serif,Silom,SimSun,Skia,Snell Roundhand,Stencil,STFangsong,STHeiti,STKaiti,Stone Sans ITC TT,Stone Sans Sem ITC TT,STSong,Symbol,Synchro LET,Tahoma,Thonburi,Times,Times New Roman,Trebuchet MS,Type Embellishments One LET,Verdana,Webdings,Wide Latin,Zapf Dingbats,Zapfino" split at ","
+  
+import:
+  com.btk5h.skriptmirror.util.lookup.DelegateMapRenderer
+  com.btk5h.skriptmirror.util.lookup.DelegatingMapRenderer
+  java.awt.Color
+  java.awt.Font
+  java.awt.image.BufferedImage
+  java.util.Arrays
+  javax.imageio.ImageIO
+  net.logicsquad.nanocaptcha.content.LatinContentProducer
+  net.logicsquad.nanocaptcha.image.ImageCaptcha
+  net.logicsquad.nanocaptcha.image.backgrounds.FlatColorBackgroundProducer
+  net.logicsquad.nanocaptcha.image.backgrounds.GradiatedBackgroundProducer
+  net.logicsquad.nanocaptcha.image.noise.CurvedLineNoiseProducer
+  net.logicsquad.nanocaptcha.image.noise.StraightLineNoiseProducer
+  net.logicsquad.nanocaptcha.image.renderer.DefaultWordRenderer
+  net.logicsquad.nanocaptcha.image.filter.FishEyeImageFilter
+  net.logicsquad.nanocaptcha.image.filter.RippleImageFilter
+  net.logicsquad.nanocaptcha.image.filter.ShearImageFilter
+  net.logicsquad.nanocaptcha.image.filter.StretchImageFilter
+  org.bukkit.Bukkit
+  org.bukkit.inventory.ItemStack
+
+function getCaptchaMap(image: object) :: itemtype:
+  create new section with {_proxy}, {_map-view}, {_canvas}, {_player} stored in {_handles::render}:
+    {_canvas}.drawImage(0, 0, {_image})
+  set {_delegate} to proxy instance of DelegateMapRenderer using {_handles::*}
+  set {_renderer} to new DelegatingMapRenderer({_delegate})
+  
+  set {_item} to (random item of filled map)
+  set {_meta} to {_item}.getItemMeta()
+  {_meta}.setScaling(true)
+  
+  set {_map.id} to (32767 - (size of {-captcha::*}))
+  {_meta}.setMapId({_map.id}.intValue())        #set {_view}.worldMap.id to "map_%{_map.id}%"
+                                                                  
+  set {_view} to {_meta}.getMapView()      #Bukkit.createMap(Bukkit.getWorlds().get(0))
+  {_view}.getRenderers().clear()
+  {_view}.addRenderer({_renderer})
+  {_view}.setTrackingPosition(false)
+
+  {_meta}.setMapView({_view})
+  {_item}.setItemMeta({_meta})
+
+  return {_item}
+
+function randomColor() :: object:
+  set {_r} to (random element of (100 times)) / 100
+  set {_g} to (random element of (100 times)) / 100
+  set {_b} to (random element of (100 times)) / 100
+  set {_color} to new Color({_r}.floatValue(), {_g}.floatValue(), {_b}.floatValue())
+  return {_color}
+
+function randomBackground() :: object:
+  set {_color1} to randomColor()
+  set {_x} to (random element out of (2 times))
+  if {_x} is 1:
+    set {_color2} to randomColor()
+    return (new GradiatedBackgroundProducer({_color1}, {_color2}))
+  return (new FlatColorBackgroundProducer({_color1}))
+
+function randomFont() :: object:
+  set {_renderer} to new DefaultWordRenderer()
+  loop {@captcha.length} times:
+    set {_font.name} to (random element of {font.names::*})
+    set {_size} to (random integer between {@text.min.size} and {@text.max.size})
+    set {_font} to (new Font({_font.name}, 0, {_size}))
+    set {_color} to randomColor()
+    {_renderer}.fonts.add({_font})
+    {_renderer}.colors.add({_color})
+  return ({_renderer})
+
+function randomContent(length: integer) :: object:
+  return (new LatinContentProducer({_length}))  
+
+function randomNoise(min: integer, max: integer) :: object:
+  set {_color} to randomColor()
+  set {_width} to (random number between {_min} and {_max}).floatValue()
+  return (new CurvedLineNoiseProducer({_color}, {_width}))
+
+function newCaptcha() :: object:
+  set {_background} to randomBackground()
+  set {_captcha} to new ImageCaptcha.Builder(128, 128).addBackground({_background})
+                                                                
+  # add fish eye filter
+  set {_x} to {@filter.fish.eye}
+  loop {_x} times:
+    set {_filter} to new FishEyeImageFilter(randomColor(), randomColor())
+    {_captcha}.addFilter({_filter})
+               
+  # lines below captcha
+  set {_x} to {@lines.below.text} 
+  loop {_x} times:
+    set {_noise} to randomNoise({@lines.below.min.width}, {@lines.below.max.width})
+    {_captcha}.addNoise({_noise})
+  
+  # filters below captcha
+  set {_x} to {@filter.fish.eye}
+  loop {_x} times:
+    set {_filter} to new FishEyeImageFilter(randomColor(), randomColor())
+    {_captcha}.addFilter({_filter})
+
+  set {_x} to {@filter.ripple}
+  loop {_x} times:
+    set {_filter} to new RippleImageFilter()
+    {_captcha}.addFilter({_filter})
+  
+  set {_x} to {@filter.shear}
+  loop {_x} times:
+    set {_filter} to new ShearImageFilter()
+    {_captcha}.addFilter({_filter})
+  
+  set {_x} to {@filter.stretch}
+  loop {_x} times:
+    set {_filter} to new StretchImageFilter()
+    {_captcha}.addFilter({_filter})
+               
+  # add text
+  {_captcha}.addContent(randomContent({@captcha.length}), randomFont())
+    
+  # lines above captcha
+  set {_x} to {@lines.above.text}
+  loop {_x} times:
+    set {_noise} to randomNoise({@lines.above.min.width}, {@lines.above.max.width})
+    {_captcha}.addNoise({_noise})
+
+  set {_captcha} to {_captcha}.build()      
+  return {_captcha}
+
+function solveCaptcha(p: player):
+  set {-captcha::%{_p}'s uuid%} to newCaptcha()
+  set {_image} to {-captcha::%{_p}'s uuid%}.getImage()
+  set {-captcha::%{_p}'s uuid%::tool} to {_p}'s tool
+  set {_p}'s tool to getCaptchaMap({_image})
+                   
+  set {_time} to {@captcha.time}
+  set {_length} to {@captcha.length}
+  send {@captcha.message.solve} to {_p}
+  
+  captchaFreeze({_p})
+  wait {@captcha.time}
+  {-captcha::%{_p}'s uuid%} is set
+  make console execute command {@captcha.out.of.time}
+
+function captchaFreeze(p: player):
+  set {_loc} to {_p}'s location
+  set pitch of {_loc} to 50
+  while {-captcha::%{_p}'s uuid%} is set:
+    teleport {_p} to {_loc}
+    wait 1 tick
+
+on click:
+  {-captcha::%player's uuid%} is set
+  cancel event
+
+on drop:
+  {-captcha::%player's uuid%} is set
+  cancel event
+
+on damage:
+  {-captcha::%victim's uuid%} is set
+  cancel event
+
+on pickup:
+  {-captcha::%player's uuid%} is set
+  cancel event
+
+on command:
+  {-captcha::%player's uuid%} is set
+  cancel event
+  
+on chat:
+  if {-captcha::%player's uuid%} is set:
+    cancel event
+    if message = {-captcha::%player's uuid%}.getContent():
+      send {@captcha.message.complete} to player
+      set player's tool to {-captcha::%player's uuid%::tool}
+      delete {-captcha::%player's uuid%}
+      delete {-captcha::%player's uuid%::*}
+              
+    else:
+      send {@captcha.message.wrong} to player
+      add 1 to {-captcha::%player's uuid%::wrong}
+      if {-captcha::%player's uuid%::wrong} = {@captcha.max.wrong}:
+        make console execute command {@captcha.punish}
+
+on quit:
+  set player's tool to {-captcha::%player's uuid%::tool}
+  delete {-captcha::%player's uuid%}
+  delete {-captcha::%player's uuid%::*}
+
+on join:
+  player doesn't have permission "captcha.bypass"
+  solveCaptcha(player)
+
+command /captcha <player>:
+  permission: captcha.admin
+  trigger:
+    solveCaptcha(arg-1)
+    send "&fMaking %arg-1% solve a captcha..." to sender
