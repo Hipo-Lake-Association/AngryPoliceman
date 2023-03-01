@@ -29,5 +29,9 @@ Angry Policeman is an advanced image based captcha system for your minecraft ser
 ![2 (1)](https://user-images.githubusercontent.com/67760502/222256297-17163fff-8b69-458e-bee1-e4f3fc25bf73.png)
 ![1 (1)](https://user-images.githubusercontent.com/67760502/222256299-c435762c-f6c2-421e-b129-f71e5a604511.png)
 
+# Credits
+- [Mr. Darth](https://github.com/Mr-Darth) for his map framework and helping with it
+- [logicsquad](https://github.com/logicsquad) for their awesome captcha library
+ 
 # Support
 Join my [discord server](https://discord.gg/py3hrJJvfy) or ping me in SkUnity discord server.
