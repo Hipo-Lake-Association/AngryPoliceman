@@ -14,7 +14,7 @@ Angry Policeman is an advanced image based captcha system for your minecraft ser
 - For permissions to work, [Vault](https://github.com/MilkBowl/Vault/releases) and a permission plugin that hooks into vault.
 
 # Installation
-1. Put nanocaptcha inside plugins/skript-reflect.
+1. Put nanocaptcha.jar inside plugins/skript-reflect.
 2. Put Angry Policeman and Mr. Darth's Map Framework in your scripts folder.
 3. Put content of `world` folder in your world folder.
 4. (Optional) Configure Angry Policeman with a text editor.
