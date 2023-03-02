@@ -3,7 +3,7 @@ Angry Policeman is an advanced image based captcha system for your minecraft ser
 ![image](https://user-images.githubusercontent.com/67760502/222389664-19fe70ca-f967-4778-9493-54fa58dc1be8.png)
 
 # Commands & Permissions
-`captcha.bypass` - Angry Policeman won't ask you to solve a captcha when you join. Still affected by the `/captcha` command
+`captcha.bypass` - Angry Policeman won't ask you to solve a captcha when you join. Still affected by the `/captcha` command.  
 `captcha.admin` - Allows you to use the `/captcha <player>` command which makes a player solve a captcha.
 
 # Requirements
